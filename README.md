@@ -1,1 +1,0 @@
-# -OffSec-Gauntlet
