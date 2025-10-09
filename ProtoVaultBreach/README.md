@@ -1,4 +1,4 @@
-# ProtoVault Breach   
+<img width="1029" height="968" alt="3" src="https://github.com/user-attachments/assets/3b40fef7-3c0e-48d1-9f03-3289f66a2887" /># ProtoVault Breach   
 
 The challenge provides a zip file.Download & Extract it with the PSW: `BloodBreathSoulFire` it gives us the project folders.  
 You’ve been tasked with tracing the origin of the breach and uncovering the vulnerability before the anonymous adversary can exploit it further – all while protecting the Order’s secrets without giving in to their demands.
@@ -39,7 +39,8 @@ The ransom image shows a PostgreSQL dump (COPY public.item_types (id, name, desc
 
 We don't know which commit exposed the secret. `git grep -nI "SQLALCHEMY_DATABASE_URI" $(git rev-list --all) `allows us to search all commits.  
 
-<img width="953" height="907" alt="1" src="https://github.com/user-attachments/assets/2c89265f-30cf-49bb-9189-75cb95c9393d" />  
+<img width="953" height="907" alt="1" src="https://github.com/user-attachments/assets/ab46d27f-314e-4092-9ca7-e73cae9c2e69" />
+
 
 We can see that recently, the production host and a dedicated user were used with `sslmode=verify-full` (requires SSL and CN verification). However, previously, a much less secure string was used: no SSL, the full password was exposed, and the host was 127.0.0.1. This shows that the repo once contained sensitive information -> increases the likelihood that the leak originated from the team's application/process.  
 
@@ -69,7 +70,8 @@ PostgreSQL backup usually uses `pg_dump`.
 Based on the above information, we will search for backup traces in the entire history, in case the file was deleted.  
 `git grep -nI 'pg_dump\|ROT13\|rot_13\|db_backup' $(git rev-list --all)`  
 
-<img width="1053" height="909" alt="2" src="https://github.com/user-attachments/assets/cd61b309-9e0b-4f93-b20f-4a939efaa797" />  
+![Uploading 2.png…]()
+
 From the grep results, we can reconstruct the behavior of this script:  
 
 1. Create a database dump:
@@ -108,7 +110,7 @@ As mentioned above, the developer used S3 for upload. The general pattern for a 
 Now let's try to find the bucket and region in the code.
 
 `git grep -nI 'S3_BUCKET\|S3_REGION|S3_bucket\|S3_region' $(git rev-list --all)`  
-<img width="1029" height="968" alt="3" src="https://github.com/user-attachments/assets/feefc853-e942-4b03-a90a-cd6bb68e442a" />  
+<img width="1029" height="968" alt="3" src="https://github.com/user-attachments/assets/92f4e622-654d-48aa-a319-d3ba43a760b5" />
 
 Here we get:
 `S3_BUCKET = "protoguard-asset-management"`  
@@ -119,7 +121,7 @@ But we don't find REGION. After searching for a while, I tried tracing the most 
 
 `git log -p -- app/util/backup_db.py | grep S3_REGION -A 2 -B 2`  
 
-<img width="871" height="867" alt="4" src="https://github.com/user-attachments/assets/7042abd1-e653-460f-8a24-8f882362e1fd" />
+<img width="871" height="867" alt="4" src="https://github.com/user-attachments/assets/05800a81-faf3-443c-afb0-bfaf33555f6e" />
 
  And we found everything we needed. It seems I've been a bit long-winded already.  
  ```
@@ -131,7 +133,7 @@ With this information, we can assemble the URL:
 `https://protoguard-asset-management.s3.us-east-2.amazonaws.com/db_backup.xyz`  
 And successfully, this file exists.  
 
-<img width="679" height="134" alt="5" src="https://github.com/user-attachments/assets/b3f24c37-d32a-474b-a91e-e8e118697e7b" />    
+<img width="679" height="134" alt="5" src="https://github.com/user-attachments/assets/354f0771-66d5-483c-99c8-19e39a637474" />
 
 
 The next task is to find the password hash for Naomi Adler.
@@ -233,13 +235,13 @@ A4:
 
 -----
 
-<img width="1509" height="174" alt="a1" src="https://github.com/user-attachments/assets/65941a9d-6286-4423-bb41-055f0e2a5685" />   
+<img width="1509" height="174" alt="a1" src="https://github.com/user-attachments/assets/35e3f839-dfcd-4b75-a2b8-f17c57f30cf6" />
+<img width="1519" height="148" alt="a2" src="https://github.com/user-attachments/assets/3c54ef2a-d58e-4441-8bdf-30fba7e3c4ea" />
+<img width="1520" height="183" alt="a3" src="https://github.com/user-attachments/assets/f87c83f5-e2ee-4c32-b571-964a0adc32a7" />
 
-<img width="1519" height="148" alt="a2" src="https://github.com/user-attachments/assets/57c4540a-440b-4eb7-b8a9-b60e8466702b" />  
+<img width="1492" height="164" alt="a4" src="https://github.com/user-attachments/assets/0e6e82fe-04b3-4673-b8dd-437985c2cb37" />
 
-<img width="1520" height="183" alt="a3" src="https://github.com/user-attachments/assets/8eb2d598-3b26-4f64-81f6-28ab3738cfc5" />  
 
-  <img width="1492" height="164" alt="a4" src="https://github.com/user-attachments/assets/94580ea9-a40f-48a8-959d-40b0367edb64" />  
 
   ----
   DONE!.
