@@ -1,4 +1,4 @@
-<img width="1029" height="968" alt="3" src="https://github.com/user-attachments/assets/3b40fef7-3c0e-48d1-9f03-3289f66a2887" /># ProtoVault Breach   
+# ProtoVault Breach  
 
 The challenge provides a zip file.Download & Extract it with the PSW: `BloodBreathSoulFire` it gives us the project folders.  
 You’ve been tasked with tracing the origin of the breach and uncovering the vulnerability before the anonymous adversary can exploit it further – all while protecting the Order’s secrets without giving in to their demands.
@@ -17,20 +17,20 @@ Let's examine it.
 
 ## KEY1
 
-**Q1: Determine if the leak could have come from the application. Review the database connection string to ensure it is secure. Submit the connection string here.  
+Q1: Determine if the leak could have come from the application. Review the database connection string to ensure it is secure. Submit the connection string here.  
 
   
 The image in the email shows an excerpt of SQL data:  
+```
+1    COPY public.item_types (id, name, description) FROM stdin;  
 
-```COPY public.item_types (id, name, description) FROM stdin;  
+2	Biological Samples	Preserved specimens of rare or hazardous organisms  
 
-1	Biological Samples	Preserved specimens of rare or hazardous organisms  
+3	Prototype Devices	Experimental technologies under development  
 
-2	Prototype Devices	Experimental technologies under development  
+4	Confidential Documents	Sensitive research reports  
 
-3	Confidential Documents	Sensitive research reports  
-
-4	Hazardous Chemicals	Toxic, corrosive, or otherwise dangerous substances  
+5	Hazardous Chemicals	Toxic, corrosive, or otherwise dangerous substances  
 ```
 
 The goal is to prove that the attacker had access to real data to make the threat more convincing.  
@@ -46,9 +46,8 @@ We can see that recently, the production host and a dedicated user were used wit
 
 
 Therefore, after synthesizing the information, the answer for the first question will be:    
+
 A1:  
-
-
 `Yes, postgresql://assetdba:8d631d2207ec1debaafd806822122250@pgsql_prod_db01.protoguard.local/pgamgt?sslmode=verify-full`  
 
 ----
@@ -68,9 +67,10 @@ Typically, a Python/Flask project often has a util/ directory containing utiliti
 PostgreSQL backup usually uses `pg_dump`.
 
 Based on the above information, we will search for backup traces in the entire history, in case the file was deleted.  
-`git grep -nI 'pg_dump\|ROT13\|rot_13\|db_backup' $(git rev-list --all)`  
+`git grep -nI 'pg_dump\|ROT13\|rot_13\|db_backup' $(git rev-list --all)`    
 
-![Uploading 2.png…]()
+<img width="1053" height="909" alt="2" src="https://github.com/user-attachments/assets/458db63e-b6b8-487f-ab05-ab29ee7b3bbb" />
+
 
 From the grep results, we can reconstruct the behavior of this script:  
 
@@ -110,6 +110,7 @@ As mentioned above, the developer used S3 for upload. The general pattern for a 
 Now let's try to find the bucket and region in the code.
 
 `git grep -nI 'S3_BUCKET\|S3_REGION|S3_bucket\|S3_region' $(git rev-list --all)`  
+
 <img width="1029" height="968" alt="3" src="https://github.com/user-attachments/assets/92f4e622-654d-48aa-a319-d3ba43a760b5" />
 
 Here we get:
